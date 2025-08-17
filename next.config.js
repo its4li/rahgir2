@@ -1,10 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
-  env: {
-    ETHERSCAN_API_KEY: process.env.ETHERSCAN_API_KEY
-  }
+  experimental: {
+    // حذف appDir که در Next.js 14 deprecated شده
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
 }
 
 module.exports = nextConfig
