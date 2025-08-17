@@ -1,31 +1,67 @@
-'use client'
-import { motion } from 'framer-motion'
-import { Wallet, TrendingUp, TrendingDown, Activity } from 'lucide-react'
-
 export default function StatsCards({ stats, network }) {
-  const cards = [
-    { title: 'موجودی کیف پول', value: `${stats.balance} ${network.currency}`, icon: Wallet, color: 'from-blue-500 to-cyan-500' },
-    { title: 'کل تراکنش‌ها', value: stats.totalTransactions, icon: Activity, color: 'from-purple-500 to-pink-500' },
-    { title: 'تراکنش‌های ارسالی', value: `${stats.sentTransactions} (${stats.totalValueSent} ${network.currency})`, icon: TrendingUp, color: 'from-red-500 to-orange-500' },
-    { title: 'تراکنش‌های دریافتی', value: `${stats.receivedTransactions} (${stats.totalValueReceived} ${network.currency})`, icon: TrendingDown, color: 'from-green-500 to-emerald-500' }
-  ]
+  if (!stats) return null
+
+  const networkNames = {
+    eth: 'اتریوم',
+    bnb: 'BNB Chain',
+    arb: 'آربیتروم',
+    op: 'اپتیمیسم',
+    btc: 'بیت‌کوین',
+    sol: 'سولانا'
+  }
+
+  const currencies = {
+    eth: 'ETH',
+    bnb: 'BNB',
+    arb: 'ETH',
+    op: 'ETH',
+    btc: 'BTC',
+    sol: 'SOL'
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {cards.map((card, idx) => (
-        <motion.div key={card.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} whileHover={{ scale: 1.05 }} className="glass-dark rounded-xl p-6 relative overflow-hidden">
-          <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-10`} />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-r ${card.color}`}>
-                <card.icon className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <h3 className="text-gray-400 text-sm mb-2">{card.title}</h3>
-            <p className="text-white text-xl font-bold">{card.value}</p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="glass-effect rounded-xl p-6 border border-slate-700/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-slate-400 text-sm">موجودی</p>
+            <p className="text-2xl font-bold text-white">
+              {stats.balance} {currencies[network]}
+            </p>
           </div>
-        </motion.div>
-      ))}
+          <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+            <span className="text-primary text-2xl">💰</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-effect rounded-xl p-6 border border-slate-700/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-slate-400 text-sm">تعداد تراکنش</p>
+            <p className="text-2xl font-bold text-white">
+              {stats.totalTransactions?.toLocaleString('fa-IR') || '0'}
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center">
+            <span className="text-secondary text-2xl">📊</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-effect rounded-xl p-6 border border-slate-700/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-slate-400 text-sm">شبکه</p>
+            <p className="text-2xl font-bold text-white">
+              {networkNames[network]}
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center">
+            <span className="text-accent text-2xl">🌐</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
