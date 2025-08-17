@@ -1,34 +1,24 @@
-'use client'
-import { motion } from 'framer-motion'
+export default function NetworkSelector({ value, onChange }) {
+  const networks = [
+    { value: 'eth', label: '🔷 اتریوم (Ethereum)', color: 'text-blue-400' },
+    { value: 'bnb', label: '🟡 بی‌ان‌بی (BNB Chain)', color: 'text-yellow-400' },
+    { value: 'arb', label: '🔵 آربیتروم (Arbitrum)', color: 'text-cyan-400' },
+    { value: 'op', label: '🔴 اپتیمیسم (Optimism)', color: 'text-red-400' },
+    { value: 'btc', label: '🟠 بیت‌کوین (Bitcoin)', color: 'text-orange-400' },
+    { value: 'sol', label: '🟢 سولانا (Solana)', color: 'text-green-400' }
+  ]
 
-export default function NetworkSelector({ networks, selectedNetwork, onNetworkChange }) {
   return (
-    <div className="mb-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-dark rounded-2xl p-6">
-        <h2 className="text-xl font-semibold text-white mb-4 text-center">انتخاب شبکه</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Object.entries(networks).map(([key, network]) => (
-            <motion.button
-              key={key}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onNetworkChange(key)}
-              className={`relative overflow-hidden rounded-xl p-4 text-center transition-all duration-300 ${
-                selectedNetwork === key ? `bg-gradient-to-r ${network.color} shadow-lg shadow-blue-500/25` : 'glass hover:glass-dark'
-              }`}
-            >
-              <div className="relative z-10">
-                <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center bg-gradient-to-r ${network.color}`}>
-                  <span className="text-white font-bold text-lg">{network.currency}</span>
-                </div>
-                <h3 className="font-semibold text-white mb-1">{network.name}</h3>
-                <p className="text-sm text-gray-300">{network.currency}</p>
-              </div>
-              {selectedNetwork === key && <motion.div layoutId="selectedNetwork" className="absolute inset-0 rounded-xl border-2 border-white/30" transition={{ type: 'spring', duration: 0.6 }} />}
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
-    </div>
+    <select 
+      value={value} 
+      onChange={(e) => onChange(e.target.value)}
+      className="select select-bordered w-full bg-slate-800/50 border-slate-600 text-white focus:border-primary"
+    >
+      {networks.map((network) => (
+        <option key={network.value} value={network.value}>
+          {network.label}
+        </option>
+      ))}
+    </select>
   )
 }
