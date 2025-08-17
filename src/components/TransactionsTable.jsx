@@ -1,88 +1,188 @@
-'use client'
-import { motion } from 'framer-motion'
-import { ExternalLink, ArrowUpRight, ArrowDownLeft, Clock, Hash } from 'lucide-react'
+function formatDate(timestamp) {
+  if (!timestamp) return '—'
+  try {
+    const date = new Date(timestamp * 1000)
+    return date.toLocaleDateString('fa-IR') + ' ' + date.toLocaleTimeString('fa-IR')
+  } catch {
+    return '—'
+  }
+}
 
-export default function TransactionsTable({ transactions, network }) {
-  const formatDate = (timestamp) =>
-    new Date(timestamp).toLocaleDateString('fa-IR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-  const formatHash = (hash) => `${hash.slice(0, 6)}...${hash.slice(-4)}`
-  const formatAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`
+function formatValue(value, decimals = 18) {
+  if (!value || value === '0') return '0'
+  try {
+    return (parseInt(value) / Math.pow(10, decimals)).toFixed(6)
+  } catch {
+    return '—'
+  }
+}
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-dark rounded-2xl p-6 overflow-hidden">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white flex items-center">
-          <Hash className="w-6 h-6 ml-2" />
-          تراکنش‌های اخیر
-        </h2>
-        <div className={`px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r ${network.color}`}>{transactions.length} تراکنش</div>
+function formatHash(hash) {
+  if (!hash) return '—'
+  return `${hash.slice(0, 10)}...${hash.slice(-8)}`
+}
+
+export default function TransactionsTable({ network, address, items, loading }) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="loading loading-spinner loading-lg text-primary"></div>
       </div>
+    )
+  }
 
+  if (!items || items.length === 0) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <div className="text-6xl mb-4">📭</div>
+        <p>تراکنشی یافت نشد</p>
+      </div>
+    )
+  }
+
+  // رندر EVM Networks
+  if (['eth', 'bnb', 'arb', 'op'].includes(network)) {
+    return (
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="table table-zebra w-full">
           <thead>
-            <tr className="border-b border-white/10">
-              <th className="text-right py-4 px-4 text-gray-300 font-medium">هش تراکنش</th>
-              <th className="text-right py-4 px-4 text-gray-300 font-medium">نوع</th>
-              <th className="text-right py-4 px-4 text-gray-300 font-medium">از</th>
-              <th className="text-right py-4 px-4 text-gray-300 font-medium">به</th>
-              <th className="text-right py-4 px-4 text-gray-300 font-medium">مقدار</th>
-              <th className="text-right py-4 px-4 text-gray-300 font-medium">زمان</th>
-              <th className="text-right py-4 px-4 text-gray-300 font-medium">وضعیت</th>
-              <th className="text-right py-4 px-4 text-gray-300 font-medium">عملیات</th>
+            <tr className="text-slate-300">
+              <th>هش تراکنش</th>
+              <th>بلاک</th>
+              <th>زمان</th>
+              <th>از</th>
+              <th>به</th>
+              <th>مقدار (ETH)</th>
+              <th>کارمزد</th>
+              <th>وضعیت</th>
             </tr>
           </thead>
           <tbody>
-            {transactions.map((tx, index) => (
-              <motion.tr key={tx.hash} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05 }} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                <td className="py-4 px-4">
-                  <div className="flex items-center">
-                    <Hash className="w-4 h-4 text-gray-400 ml-2" />
-                    <span className="font-mono text-sm text-blue-400">{formatHash(tx.hash)}</span>
+            {items.map((tx) => (
+              <tr key={tx.hash} className="hover:bg-slate-800/50">
+                <td>
+                  <code className="text-primary text-xs">
+                    {formatHash(tx.hash)}
+                  </code>
+                </td>
+                <td className="text-sm">{tx.blockNumber}</td>
+                <td className="text-sm">{formatDate(tx.timeStamp)}</td>
+                <td>
+                  <code className="text-xs text-slate-400">
+                    {formatHash(tx.from)}
+                  </code>
+                </td>
+                <td>
+                  <code className="text-xs text-slate-400">
+                    {formatHash(tx.to)}
+                  </code>
+                </td>
+                <td className="font-mono">{formatValue(tx.value)}</td>
+                <td className="text-xs text-slate-400">
+                  {formatValue(tx.gasUsed * tx.gasPrice, 18)}
+                </td>
+                <td>
+                  <div className={`badge ${tx.txreceipt_status === '1' ? 'badge-success' : 'badge-error'}`}>
+                    {tx.txreceipt_status === '1' ? 'موفق' : 'ناموفق'}
                   </div>
                 </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center">
-                    {parseFloat(tx.value) > 0 ? (
-                      <>
-                        <ArrowUpRight className="w-4 h-4 text-red-400 ml-1" />
-                        <span className="text-red-400 text-sm">ارسال</span>
-                      </>
-                    ) : (
-                      <>
-                        <ArrowDownLeft className="w-4 h-4 text-green-400 ml-1" />
-                        <span className="text-green-400 text-sm">دریافت</span>
-                      </>
-                    )}
-                  </div>
-                </td>
-                <td className="py-4 px-4"><span className="font-mono text-sm text-gray-300">{formatAddress(tx.from)}</span></td>
-                <td className="py-4 px-4"><span className="font-mono text-sm text-gray-300">{formatAddress(tx.to)}</span></td>
-                <td className="py-4 px-4">
-                  <div className="text-right">
-                    <span className="font-semibold text-white">{parseFloat(tx.value).toFixed(6)}</span>
-                    <span className="text-gray-400 text-sm mr-1">{network.currency}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center text-gray-400 text-sm">
-                    <Clock className="w-4 h-4 ml-1" />
-                    {formatDate(tx.timestamp)}
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${tx.isError ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>{tx.status}</span>
-                </td>
-                <td className="py-4 px-4">
-                  <motion.a href={`${network.explorerUrl}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="text-blue-400 hover:text-blue-300 transition-colors">
-                    <ExternalLink className="w-4 h-4" />
-                  </motion.a>
-                </td>
-              </motion.tr>
+              </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </motion.div>
-  )
+    )
+  }
+
+  // رندر Bitcoin
+  if (network === 'btc') {
+    return (
+      <div className="overflow-x-auto">
+        <table className="table table-zebra w-full">
+          <thead>
+            <tr className="text-slate-300">
+              <th>TXID</th>
+              <th>زمان</th>
+              <th>ورودی/خروجی</th>
+              <th>مقدار (BTC)</th>
+              <th>تایید</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((tx) => {
+              const txid = tx.txid || tx.hash || '—'
+              const time = tx.status?.block_time || tx.block_time
+              const vinCount = tx.vin?.length || 0
+              const voutCount = tx.vout?.length || 0
+              const totalValue = tx.vout?.reduce((sum, out) => sum + (out.value || 0), 0) || 0
+              const confirmed = tx.status?.confirmed
+
+              return (
+                <tr key={txid} className="hover:bg-slate-800/50">
+                  <td>
+                    <code className="text-primary text-xs">
+                      {formatHash(txid)}
+                    </code>
+                  </td>
+                  <td className="text-sm">{formatDate(time)}</td>
+                  <td className="text-sm">{vinCount} / {voutCount}</td>
+                  <td className="font-mono">{(totalValue / 1e8).toFixed(8)}</td>
+                  <td>
+                    <div className={`badge ${confirmed ? 'badge-success' : 'badge-warning'}`}>
+                      {confirmed ? 'تایید شده' : 'در انتظار'}
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  // رندر Solana
+  if (network === 'sol') {
+    return (
+      <div className="overflow-x-auto">
+        <table className="table table-zebra w-full">
+          <thead>
+            <tr className="text-slate-300">
+              <th>Signature</th>
+              <th>زمان</th>
+              <th>Slot</th>
+              <th>وضعیت</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((tx, idx) => {
+              const signature = tx.signature || tx.txHash || `tx-${idx}`
+              const time = tx.block_time || tx.blockTime || tx.timestamp
+              const slot = tx.slot || tx.block_slot || tx.block || '—'
+              const status = tx.status || (tx.err ? 'Failed' : 'Success')
+
+              return (
+                <tr key={signature} className="hover:bg-slate-800/50">
+                  <td>
+                    <code className="text-primary text-xs">
+                      {formatHash(signature)}
+                    </code>
+                  </td>
+                  <td className="text-sm">{formatDate(time)}</td>
+                  <td className="text-sm">{slot}</td>
+                  <td>
+                    <div className={`badge ${status === 'Success' ? 'badge-success' : 'badge-error'}`}>
+                      {status === 'Success' ? 'موفق' : 'ناموفق'}
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  return null
 }
